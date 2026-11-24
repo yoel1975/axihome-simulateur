@@ -296,7 +296,7 @@ async function loadFromCMS(){
     P.vat = g('vat','rate',P.vat); P.agency = g('agency_fee','rate',P.agency); P.lawyer = g('lawyer_fee','rate',P.lawyer);
     $('rate').value = g('default_rate','rate',+$('rate').value);
     $('years').max = P.termMax;
-    document.querySelector('.proto').textContent = 'Prototype AXIHOME, version de travail non publiée. Données lues en direct dans le CMS. Aucune donnée n\'est envoyée.';
+    document.querySelector('.proto').hidden = true;
   } catch(err) {
     document.querySelector('.proto').textContent = 'Lecture du CMS impossible, valeurs de secours affichées. Aucune donnée n\'est envoyée.';
   }
