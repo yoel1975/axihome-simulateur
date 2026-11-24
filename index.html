@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Simulateur AXIHOME</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&family=Varela+Round&display=swap">
+<style>
+/* Layout: une colonne étroite façon fiche de bien ; deux simulateurs dépliables puis demande d'accompagnement */
+:root{
+  --bg:#ffffff; --fg:#00050B; --muted:#4F4F4F; --card:#F0F4F8; --card2:#F5EBE9;
+  --teal:#087EA7; --wine:#9F200F; --salmon:#FAAC9B; --line:#d9e1e8; --ok:#1f7a4d; --warn:#9a5b00;
+  --display:"Varela Round","Oktah Round",ui-rounded,system-ui,sans-serif;
+  --body:"Onest",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1117; --fg:#eef2f5; --muted:#a9b3bc; --card:#16202a; --card2:#241a1a;
+  --teal:#4fb6dc; --wine:#e0705f; --salmon:#f2a693; --line:#2a3642; --ok:#5fc795; --warn:#e3a54a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1117; --fg:#eef2f5; --muted:#a9b3bc; --card:#16202a; --card2:#241a1a;
+  --teal:#4fb6dc; --wine:#e0705f; --salmon:#f2a693; --line:#2a3642; --ok:#5fc795; --warn:#e3a54a; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.proto{font-size:13px;color:var(--warn);border:1px dashed var(--warn);border-radius:12px;padding:8px 12px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:600}
+h1{font-family:var(--display);font-size:clamp(26px,5vw,36px);line-height:1.15;margin:4px 0 0;text-wrap:balance}
+h2{font-family:var(--display);font-size:22px;margin:0}
+.rule{display:flex;align-items:center;gap:0;margin-top:8px}.rule i{display:block;height:2px;width:56px;background:var(--wine)}.rule b{display:block;width:7px;height:7px;background:var(--wine)}
+.prop{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--muted);font-size:15px}
+.prop strong{color:var(--fg);font-variant-numeric:tabular-nums}
+.status{display:flex;flex-wrap:wrap;gap:8px}
+.status label{position:relative}
+.status input{position:absolute;opacity:0}
+.status span{display:inline-block;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);cursor:pointer;font-size:14px;background:var(--bg)}
+.status input:checked+span{border-color:var(--wine);background:var(--wine);color:#fff}
+.status input:focus-visible+span{outline:2px solid var(--teal);outline-offset:2px}
+.status input:disabled+span{opacity:.45;cursor:not-allowed}
+details{border-radius:24px;background:var(--card);padding:0 20px}
+details.alt{background:var(--card2)}
+summary{list-style:none;cursor:pointer;padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary .chev{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--fg);display:grid;place-items:center;flex:none;transition:transform .2s}
+details[open] summary .chev{transform:rotate(45deg)}
+summary:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:8px}
+.body{padding-bottom:20px;display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field .top{display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--muted)}
+.field .top output{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--wine)}
+input[type=number],input[type=text],input[type=email],input[type=tel]{font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--fg);width:100%;box-sizing:border-box}
+input:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.result{background:var(--bg);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.big{font-family:var(--display);font-size:clamp(30px,7vw,42px);font-variant-numeric:tabular-nums;line-height:1.1}
+.note{font-size:13px;color:var(--muted)}
+.flag{font-size:14px;padding:10px 12px;border-radius:12px;border-left:4px solid var(--warn);background:var(--bg)}
+.flag.ok{border-color:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:12px}
+tr.total td{border-bottom:none;font-weight:600;font-size:17px;padding-top:12px}
+td small{display:block;color:var(--muted);font-size:12px}
+.viz{display:flex;flex-direction:column;gap:8px}
+.viz h3{font-size:14px;font-weight:600;margin:0;color:var(--muted)}
+.bar{position:relative;display:flex;height:34px;border-radius:10px;overflow:hidden;background:var(--line)}
+.bar span{display:flex;align-items:center;padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;color:#fff;transition:flex-basis .25s}
+.seg-down{background:var(--teal)}.seg-loan{background:var(--wine)}.seg-int{background:var(--salmon);color:#00050B!important}
+.seg-tax{background:var(--wine)}.seg-fee{background:var(--salmon);color:#00050B!important}.seg-price{background:var(--teal)}.seg-opt{background:var(--muted)}
+.cap{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
+.cta{display:flex;flex-direction:column;gap:12px;border:1.5px solid var(--line);border-radius:24px;padding:20px}
+button{font:inherit;font-weight:600;background:var(--wine);color:#fff;border:0;border-radius:999px;padding:12px 22px;cursor:pointer;align-self:flex-start}
+button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted)}
+.check input{margin-top:4px}
+.legal{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){summary .chev{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="proto">Chargement des données du bien…</div>
+
+  <header>
+    <div class="eyebrow">Préparez votre acquisition</div>
+    <h1 id="ptitle">Appartement 3 pièces à 50 m du boulevard Rothschild</h1>
+    <div class="rule"><i></i><b></b></div>
+  </header>
+  <div class="prop"><span>Tel-Aviv, Ahad Ha'am 81</span><span>Prix&nbsp;: <strong id="pprice">4 890 000 ₪</strong></span><span>70 m², 3 pièces</span></div>
+
+  <section aria-labelledby="st">
+    <h2 id="st" style="font-size:18px;margin-bottom:10px">Votre situation</h2>
+    <div class="status" role="radiogroup" aria-labelledby="st">
+      <label><input type="radio" name="status" id="s-first" value="first" checked><span>Résident, premier logement</span></label>
+      <label><input type="radio" name="status" id="s-repl" value="replacement"><span>Résident, logement de remplacement</span></label>
+      <label><input type="radio" name="status" id="s-inv" value="investment"><span>Résident, investissement</span></label>
+      <label><input type="radio" name="status" id="s-nr" value="nonres"><span>Non-résident</span></label>
+      <label><input type="radio" name="status" id="s-oleh" value="oleh"><span>Olé hadash</span></label>
+    </div>
+  </section>
+
+  <details open id="d1">
+    <summary><h2>Simulateur de financement</h2><span class="chev" aria-hidden="true">+</span></summary>
+    <div class="body">
+      <div class="field">
+        <div class="top"><label for="down">Apport personnel</label><output id="downOut"></output></div>
+        <input type="range" id="down" min="25" max="100" step="1" value="50">
+        <div class="note" id="downNote"></div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <div class="top"><label for="years">Durée du crédit</label><output id="yearsOut"></output></div>
+          <input type="range" id="years" min="5" max="30" step="1" value="25">
+        </div>
+        <div class="field">
+          <div class="top"><label for="rate">Taux annuel</label><output id="rateOut"></output></div>
+          <input type="range" id="rate" min="1" max="8" step="0.05" value="4.5">
+        </div>
+      </div>
+      <div class="field">
+        <div class="top"><label for="income">Revenu net mensuel du foyer (facultatif)</label></div>
+        <input type="number" id="income" inputmode="numeric" min="0" step="1000" placeholder="ex. 40 000">
+      </div>
+      <div class="result" aria-live="polite">
+        <div class="note">Montant du crédit&nbsp;: <strong id="loanOut"></strong></div>
+        <div class="note">Mensualité estimée</div>
+        <div class="big" id="monthly"></div>
+        <div id="ptiFlag"></div>
+      </div>
+      <div class="viz">
+        <h3>Répartition du financement</h3>
+        <div class="bar" id="vizFin" role="img"></div>
+        <div class="legend"><span><i class="seg-down"></i>Apport</span><span><i class="seg-loan"></i>Crédit bancaire</span><span>▏ plafond de financement</span></div>
+      </div>
+      <div class="viz">
+        <h3>Ce que vous rembourserez au total</h3>
+        <div class="bar" id="vizRepay" role="img"></div>
+        <div class="legend"><span><i class="seg-loan"></i>Capital emprunté</span><span><i class="seg-int"></i>Intérêts</span></div>
+      </div>
+      <p class="note">Calcul à taux constant, hors assurance, frais bancaires et indexation. Plafonds appliqués selon la directive 329 de la Banque d'Israël&nbsp;: financement maximal selon votre situation, durée maximale de 30 ans, mensualité limitée à 50&nbsp;% du revenu.</p>
+    </div>
+  </details>
+
+  <details class="alt" open id="d2">
+    <summary><h2>Coût global d'acquisition</h2><span class="chev" aria-hidden="true">+</span></summary>
+    <div class="body">
+      <table>
+        <tbody id="costRows"></tbody>
+      </table>
+      <div class="grid2">
+        <div class="field"><label class="note" for="reno">Budget rénovation (facultatif, ₪)</label><input type="number" id="reno" min="0" step="10000" placeholder="0"></div>
+        <div class="field"><label class="note" for="furn">Budget ameublement (facultatif, ₪)</label><input type="number" id="furn" min="0" step="5000" placeholder="0"></div>
+      </div>
+      <div class="viz">
+        <h3>Composition du budget</h3>
+        <div class="bar" id="vizCost" role="img"></div>
+        <div class="legend"><span><i class="seg-price"></i>Prix</span><span><i class="seg-tax"></i>Taxe d'acquisition</span><span><i class="seg-fee"></i>Honoraires</span><span><i class="seg-opt"></i>Travaux et mobilier</span></div>
+      </div>
+      <div class="result">
+        <div class="note">Budget total nécessaire</div>
+        <div class="big" id="total"></div>
+        <div class="note" id="cash"></div>
+      </div>
+      <div id="taxFlag"></div>
+    </div>
+  </details>
+
+  <details class="alt" open id="d3">
+    <summary><h2>Potentiel locatif</h2><span class="chev" aria-hidden="true">+</span></summary>
+    <div class="body">
+      <div class="field">
+        <div class="top"><label for="rent">Loyer mensuel, location longue durée</label><output id="rentOut"></output></div>
+        <input type="range" id="rent" min="5000" max="20000" step="100" value="13750">
+        <div class="note" id="rentNote"></div>
+      </div>
+      <div class="grid2">
+        <div class="result"><div class="note">Rendement brut</div><div class="big" id="ltGross"></div><div class="note">Loyer annuel / prix du bien</div></div>
+        <div class="result"><div class="note">Rendement net estimé</div><div class="big" id="ltNet"></div><div class="note" id="ltNetNote"></div></div>
+      </div>
+      <div class="viz">
+        <h3>Ce que devient le loyer annuel</h3>
+        <div class="bar" id="vizRent" role="img"></div>
+        <div class="legend"><span><i class="seg-down"></i>Revenu net</span><span><i class="seg-fee"></i>Vacance, entretien, assurance, gestion</span><span><i class="seg-loan"></i>Impôt (option 10 %)</span></div>
+      </div>
+      <table><tbody id="rentRows"></tbody></table>
+      <h3 style="font-family:var(--display);font-size:19px;margin:12px 0 0">Scénario courte durée (type Airbnb)</h3>
+      <div class="flag"><strong>Scénario théorique, à vérifier avec un avocat.</strong> La Cour suprême (רע"פ 48804-06-25, 2025) a jugé que la location de vacances de courte durée est un usage interdit dans une zone d'habitation, et les tribunaux exigent un permis et une licence d'exploitation. Le règlement de copropriété peut aussi l'interdire. Les revenus sont imposés comme une activité commerciale, avec TVA, sans exonération ni option à 10 %.</div>
+      <div class="grid2">
+        <div class="field">
+          <div class="top"><label for="night">Prix moyen par nuit</label><output id="nightOut"></output></div>
+          <input type="range" id="night" min="300" max="2500" step="10" value="800">
+          <div class="note" id="nightNote"></div>
+        </div>
+        <div class="field">
+          <div class="top"><label for="occ">Taux d'occupation</label><output id="occOut"></output></div>
+          <input type="range" id="occ" min="30" max="95" step="1" value="65">
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="result"><div class="note">Rendement brut (CA hors TVA / prix)</div><div class="big" id="stGross"></div></div>
+        <div class="result"><div class="note">Rendement net estimé, avant impôt sur le revenu</div><div class="big" id="stNet"></div><div class="note" id="stCompare"></div></div>
+      </div>
+      <div class="viz">
+        <h3>Ce que devient le chiffre d'affaires annuel</h3>
+        <div class="bar" id="vizST" role="img"></div>
+        <div class="legend"><span><i class="seg-down"></i>Revenu net</span><span><i class="seg-loan"></i>TVA et commission</span><span><i class="seg-fee"></i>Conciergerie, ménage, charges, entretien</span></div>
+      </div>
+      <table><tbody id="stRows"></tbody></table>
+      <p class="note">Rendement net calculé sur l'investissement total (prix et frais d'acquisition), hors crédit. Hypothèses AXIHOME révisables : vacance, entretien, assurance, gestion. En location longue durée, l'arnona et le vaad bayit courant sont en principe à la charge du locataire.</p>
+    </div>
+  </details>
+
+  <form class="cta" id="lead" novalidate>
+    <h2>Être accompagné par AXIHOME</h2>
+    <p class="note" style="margin:0">Recevez cette simulation et un premier échange avec un conseiller, sans engagement.</p>
+    <div class="grid2">
+      <div class="field"><label class="note" for="lname">Nom complet</label><input type="text" id="lname" autocomplete="name" required></div>
+      <div class="field"><label class="note" for="lphone">Téléphone</label><input type="tel" id="lphone" autocomplete="tel"></div>
+    </div>
+    <div class="field"><label class="note" for="lemail">E-mail</label><input type="email" id="lemail" autocomplete="email" required></div>
+    <label class="check"><input type="checkbox" id="lconsent" required> J'accepte qu'AXIHOME conserve ces informations pour me recontacter au sujet de mon projet.</label>
+    <button type="submit">Envoyer ma simulation</button>
+    <div id="leadMsg" class="note" aria-live="polite"></div>
+  </form>
+
+  <p class="legal">Simulation indicative, ne constitue ni un conseil fiscal ou juridique, ni une offre de crédit. Taxe d'acquisition calculée selon les barèmes publiés pour 2026 (seuils gelés jusqu'au 15/01/2028 ; barème « logement supplémentaire » valable jusqu'au 31/12/2026). Honoraires selon le barème AXIHOME ; hors frais bancaires et de change. Paramètres mis à jour le 24/11/2026.</p>
+</div>
+
+<script>
+// Configuration : renseigner l'identifiant client public (OAuth Wix) pour lire le CMS en direct.
+// Sans identifiant, la page utilise l'instantané ci-dessous (valeurs du CMS au 24/11/2026).
+const WIX_CLIENT_ID = "c7f69d37-b598-4517-a461-ec87ce2b5ce1"; // client public « AXIHOME Simulateur », lecture seule
+const PROPERTIES_COLLECTION = "Properties";
+const SETTINGS_COLLECTION = "AxihomeFinancialSettings";
+const P = {
+  price: 4890000,
+  ltv: {first:75, replacement:70, investment:50, nonres:50, oleh:75},
+  pti: 50, termMax: 30, vat: 18, agency: 2, lawyer: 1,
+  rentMin: 12500, rentMax: 15000, nightly: null,
+  stOcc: 65, stFee: 15, stMgmt: 20, stClean: 200, stStay: 4, stCharges: 1500, stMaint: 5, stFurn: 60000, ltVac: 4, ltMaint: 5, ltIns: 1500, ltMgmt: 0, rentTax: 10,
+  tax: {
+    single: [[0,1978745,0],[1978745,2347040,3.5],[2347040,6055070,5],[6055070,20183565,8],[20183565,Infinity,10]],
+    extra:  [[0,6055070,8],[6055070,Infinity,10]]
+  }
+};
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('fr-FR').replace(/ | /g,' ') + ' ₪';
+const status = () => document.querySelector('input[name=status]:checked').value;
+const singleLike = st => st==='first'||st==='replacement'||st==='oleh';
+async function loadFromCMS(){
+  if (!WIX_CLIENT_ID) return;
+  try {
+    const tk = await fetch('https://www.wixapis.com/oauth2/token',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({clientId:WIX_CLIENT_ID,grantType:'anonymous'})}).then(r=>r.json());
+    const q = (coll, filter) => fetch('https://www.wixapis.com/wix-data/v2/items/query',{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':tk.access_token},
+      body:JSON.stringify({dataCollectionId:coll,query:{filter:filter||{},paging:{limit:100}}})}).then(r=>r.json());
+    const bien = new URLSearchParams(location.search).get('bien');
+    const [props, rules] = await Promise.all([bien ? q(PROPERTIES_COLLECTION,{_id:{$eq:bien}}) : null, q(SETTINGS_COLLECTION,{active:{$eq:true}})]);
+    const item = props && props.dataItems && props.dataItems[0] && props.dataItems[0].data;
+    if (item && item.price) {
+      P.price = item.price;
+      if (item.title) $('ptitle').textContent = item.title;
+      $('pprice').textContent = item.priceDisplay || fmt(item.price);
+      if (item.monthlyRentMin) P.rentMin = item.monthlyRentMin;
+      if (item.monthlyRentMax) P.rentMax = item.monthlyRentMax;
+      if (item.nightlyRate) P.nightly = item.nightlyRate;
+    }
+    const now = new Date();
+    const R = (rules.dataItems||[]).map(i=>i.data).filter(d => !d.effectiveTo || new Date(d.effectiveTo.$date||d.effectiveTo) >= now);
+    const one = t => R.find(d=>d.ruleType===t);
+    const br = f => R.filter(d=>d.ruleType==='purchase_tax'&&f(d)).sort((a,b)=>a.thresholdMin-b.thresholdMin)
+      .map(d=>[d.thresholdMin, d.thresholdMax==null?Infinity:d.thresholdMax, d.rate]);
+    const s = br(d=>d.buyerStatus==='resident'&&d.acquisitionType==='single_or_replacement');
+    const e = br(d=>d.buyerStatus==='resident'&&d.acquisitionType==='investment');
+    const n = br(d=>d.buyerStatus==='non_resident');
+    if (s.length) P.tax.single = s;
+    P.tax.extra = e.length ? e : null;
+    P.tax.nonres = n.length ? n : P.tax.extra;
+    const ltv = (a,b) => (R.find(d=>d.ruleType==='ltv_max'&&d.acquisitionType===a&&d.buyerStatus===b)||{}).rate;
+    P.ltv = {first:ltv('first_home','resident')||75, replacement:ltv('replacement','resident')||70,
+      investment:ltv('investment','resident')||50, nonres:ltv('any','non_resident')||50, oleh:ltv('first_home','resident')||75};
+    const g = (t,k,def) => { const r = one(t); return r && r[k]!=null ? r[k] : def; };
+    P.pti = g('pti_max','rate',P.pti); P.termMax = g('loan_term_max','fixedValue',P.termMax);
+    P.ltVac = g('lt_vacancy','rate',P.ltVac); P.ltMaint = g('lt_maintenance','rate',P.ltMaint); P.ltIns = g('lt_insurance','fixedValue',P.ltIns);
+    P.ltMgmt = g('lt_management','rate',P.ltMgmt); P.rentTax = g('rent_tax_flat','rate',P.rentTax);
+    P.stOcc = g('st_occupancy','rate',P.stOcc); P.stFee = g('st_platform_fee','rate',P.stFee); P.stMgmt = g('st_management','rate',P.stMgmt);
+    P.stClean = g('st_cleaning','fixedValue',P.stClean); P.stStay = g('st_avg_stay','fixedValue',P.stStay); P.stCharges = g('st_owner_charges','fixedValue',P.stCharges);
+    P.stMaint = g('st_maintenance','rate',P.stMaint); P.stFurn = g('st_furnishing','fixedValue',P.stFurn);
+    P.vat = g('vat','rate',P.vat); P.agency = g('agency_fee','rate',P.agency); P.lawyer = g('lawyer_fee','rate',P.lawyer);
+    $('rate').value = g('default_rate','rate',+$('rate').value);
+    $('years').max = P.termMax;
+    document.querySelector('.proto').textContent = 'Prototype AXIHOME, version de travail non publiée. Données lues en direct dans le CMS. Aucune donnée n\'est envoyée.';
+  } catch(err) {
+    document.querySelector('.proto').textContent = 'Lecture du CMS impossible, valeurs de secours affichées. Aucune donnée n\'est envoyée.';
+  }
+}
+function purchaseTax(price, st){
+  if (!singleLike(st) && !P.tax.extra) return NaN;
+  const t = singleLike(st) ? P.tax.single : (st==='nonres' ? (P.tax.nonres||P.tax.extra) : P.tax.extra);
+  return t.reduce((s,[a,b,r]) => s + Math.max(0, Math.min(price,b)-a) * r/100, 0);
+}
+function update(){
+  const st = status(), price = P.price;
+  const minDownPct = 100 - P.ltv[st];
+  const down = $('down');
+  down.min = minDownPct;
+  if (+down.value < minDownPct) down.value = minDownPct;
+  const dPct = +down.value, downAmt = price*dPct/100, loan = price - downAmt;
+  const n = +$('years').value*12, r = +$('rate').value/100/12;
+  const m = loan<=0 ? 0 : (r===0 ? loan/n : loan*r/(1-Math.pow(1+r,-n)));
+  $('downOut').textContent = dPct+' % · '+fmt(downAmt);
+  $('downNote').textContent = 'Apport minimum pour votre situation : '+minDownPct+' % ('+fmt(price*minDownPct/100)+'), soit un financement bancaire de '+P.ltv[st]+' % au plus.';
+  $('yearsOut').textContent = $('years').value+' ans';
+  $('rateOut').textContent = (+$('rate').value).toFixed(2).replace('.',',')+' %';
+  $('loanOut').textContent = fmt(loan);
+  $('monthly').textContent = fmt(m)+' / mois';
+  const inc = +$('income').value;
+  const f = $('ptiFlag');
+  if (inc>0 && loan>0){
+    const ratio = m/inc*100;
+    f.className = 'flag'+(ratio<=P.pti?' ok':'');
+    f.textContent = ratio<=P.pti
+      ? 'La mensualité représente '+ratio.toFixed(0)+' % de votre revenu, sous le plafond de '+P.pti+' %.'
+      : 'La mensualité représente '+ratio.toFixed(0)+' % de votre revenu : au-delà du plafond de '+P.pti+' %, une banque refusera ce montage. Augmentez l\'apport ou la durée.';
+  } else { f.className=''; f.textContent=''; }
+
+  const tax = purchaseTax(price, st);
+  const agency = price*P.agency/100*(1+P.vat/100);
+  const lawyer = price*P.lawyer/100*(1+P.vat/100);
+  const reno = +$('reno').value||0, furn = +$('furn').value||0;
+  const rows = [
+    ['Prix du bien','',price],
+    ['Taxe d\'acquisition (Mas Rechisha)', isNaN(tax) ? 'Barème en cours de mise à jour, contactez-nous' : (st==='oleh' ? 'Barème logement unique, montant maximal : le régime olim peut réduire la taxe, à vérifier avec votre avocat' : (singleLike(st)?'Barème logement unique':(st==='nonres'?'Barème logement supplémentaire, à confirmer par votre avocat':'Barème logement supplémentaire'))), isNaN(tax)?0:tax],
+    ['Honoraires d\'agence', P.agency+' % + TVA '+P.vat+' %', agency],
+    ['Honoraires d\'avocat', P.lawyer+' % + TVA '+P.vat+' %', lawyer],
+  ];
+  if (reno) rows.push(['Rénovation','',reno]);
+  if (furn) rows.push(['Ameublement','',furn]);
+  const total = rows.reduce((s,r)=>s+r[2],0);
+  $('costRows').innerHTML = rows.map(r=>'<tr><td>'+r[0]+(r[1]?'<small>'+r[1]+'</small>':'')+'</td><td>'+fmt(r[2])+'</td></tr>').join('')
+    + '<tr class="total"><td>Total</td><td>'+fmt(total)+'</td></tr>';
+  $('total').textContent = fmt(total);
+  const seg = (cls, v, sum, label) => v>0 ? '<span class="'+cls+'" style="flex:0 0 '+(v/sum*100).toFixed(2)+'%">'+label+'</span>' : '';
+  const pct = (v,s) => Math.round(v/s*100)+' %';
+  $('vizFin').innerHTML = seg('seg-down',downAmt,price,pct(downAmt,price)) + seg('seg-loan',loan,price,pct(loan,price))
+    + '<i class="cap" style="left:'+(100-P.ltv[st])+'%" title="Plafond : '+P.ltv[st]+' % de financement"></i>';
+  $('vizFin').setAttribute('aria-label','Apport '+pct(downAmt,price)+', crédit '+pct(loan,price)+', plafond de financement '+P.ltv[st]+' %');
+  const repay = m*n, interest = Math.max(0, repay-loan);
+  $('vizRepay').innerHTML = loan>0 ? seg('seg-loan',loan,repay,fmt(loan)) + seg('seg-int',interest,repay,fmt(interest)) : '';
+  $('vizRepay').setAttribute('aria-label','Capital '+fmt(loan)+', intérêts '+fmt(interest));
+  const fees = agency+lawyer, opt = reno+furn, t2 = isNaN(tax)?0:tax;
+  $('vizCost').innerHTML = seg('seg-price',price,total,pct(price,total)) + seg('seg-tax',t2,total,pct(t2,total)) + seg('seg-fee',fees,total,pct(fees,total)) + seg('seg-opt',opt,total,pct(opt,total));
+  $('vizCost').setAttribute('aria-label','Prix '+pct(price,total)+', taxe '+pct(t2,total)+', frais '+pct(fees,total));
+  // Potentiel locatif, longue durée
+  const rr = $('rent');
+  if (!rr.dataset.init){ rr.min = Math.round(P.rentMin*0.7/100)*100; rr.max = Math.round(P.rentMax*1.3/100)*100; rr.value = Math.round((P.rentMin+P.rentMax)/2/100)*100; rr.dataset.init='1'; }
+  const rent = +rr.value, annual = rent*12;
+  const invest = price + t2 + agency + lawyer;
+  const vac = annual*P.ltVac/100, maint = annual*P.ltMaint/100, mgmt = annual*P.ltMgmt/100*(1+P.vat/100), ins = P.ltIns;
+  const costs = vac+maint+mgmt+ins, taxR = annual*P.rentTax/100;
+  const netBefore = annual-costs, netAfter = netBefore-taxR;
+  const yp = v => (v*100).toFixed(2).replace('.',',')+' %';
+  $('rentOut').textContent = fmt(rent)+' / mois';
+  $('rentNote').textContent = 'Estimation AXIHOME pour ce bien : '+fmt(P.rentMin)+' à '+fmt(P.rentMax)+' par mois.';
+  $('ltGross').textContent = yp(annual/price);
+  $('ltNet').textContent = yp(netAfter/invest);
+  $('ltNetNote').textContent = 'Après charges et impôt forfaitaire de '+P.rentTax+' % ; avant impôt : '+yp(netBefore/invest);
+  $('vizRent').innerHTML = seg('seg-down',netAfter,annual,pct(netAfter,annual)) + seg('seg-fee',costs,annual,pct(costs,annual)) + seg('seg-loan',taxR,annual,pct(taxR,annual));
+  $('vizRent').setAttribute('aria-label','Revenu net '+pct(netAfter,annual)+', charges '+pct(costs,annual)+', impôt '+pct(taxR,annual));
+  $('rentRows').innerHTML = [['Loyer annuel',annual],['Vacance locative ('+P.ltVac+' %)',-vac],['Entretien ('+P.ltMaint+' %)',-maint],['Assurance propriétaire',-ins]]
+    .concat(P.ltMgmt?[['Gestion locative ('+P.ltMgmt+' % + TVA)',-mgmt]]:[])
+    .concat([['Impôt, option forfaitaire '+P.rentTax+' %',-taxR]])
+    .map(r=>'<tr><td>'+r[0]+'</td><td>'+(r[1]<0?'− ':'')+fmt(Math.abs(r[1]))+'</td></tr>').join('')
+    + '<tr class="total"><td>Revenu net annuel</td><td>'+fmt(netAfter)+'</td></tr>';
+  // Scénario courte durée
+  const nr = $('night'), oc = $('occ');
+  if (!nr.dataset.init){ if (P.nightly) nr.value = P.nightly; oc.value = P.stOcc; nr.dataset.init='1'; }
+  const nightly = +nr.value, occ = +oc.value/100, nights = 365*occ;
+  const revTTC = nightly*nights, revHT = revTTC/(1+P.vat/100), vatAmt = revTTC-revHT;
+  const fee = revTTC*P.stFee/100, mg = revHT*P.stMgmt/100, clean = nights/P.stStay*P.stClean, ch = P.stCharges*12, mt = revHT*P.stMaint/100;
+  const stNet = revHT-fee-mg-clean-ch-mt, stInvest = invest + P.stFurn;
+  $('nightOut').textContent = fmt(nightly);
+  $('nightNote').textContent = P.nightly ? 'Estimation AXIHOME pour ce bien.' : 'Valeur d\'exemple : prix par nuit non renseigné pour ce bien.';
+  $('occOut').textContent = Math.round(occ*100)+' % ('+Math.round(nights)+' nuits)';
+  $('stGross').textContent = yp(revHT/price);
+  $('stNet').textContent = yp(stNet/stInvest);
+  $('stCompare').textContent = 'À comparer à '+yp(netBefore/invest)+' en longue durée avant impôt. Investissement compté avec '+fmt(P.stFurn)+' d\'ameublement.';
+  const tot = revTTC;
+  $('vizST').innerHTML = stNet>0 ? seg('seg-down',stNet,tot,pct(stNet,tot)) + seg('seg-loan',vatAmt+fee,tot,pct(vatAmt+fee,tot)) + seg('seg-fee',mg+clean+ch+mt,tot,pct(mg+clean+ch+mt,tot)) : '';
+  $('vizST').setAttribute('aria-label','Revenu net '+pct(Math.max(stNet,0),tot)+' du chiffre d\'affaires');
+  $('stRows').innerHTML = [['Chiffre d\'affaires TTC ('+Math.round(nights)+' nuits)',revTTC],['TVA '+P.vat+' %',-vatAmt],['Commission plateforme ('+P.stFee+' %)',-fee],['Conciergerie ('+P.stMgmt+' % du HT)',-mg],
+    ['Ménage et linge ('+fmt(P.stClean)+' par séjour de '+P.stStay+' nuits)',-clean],['Arnona, vaad bayit, énergie, internet',-ch],['Entretien et usure ('+P.stMaint+' %)',-mt]]
+    .map(r=>'<tr><td>'+r[0]+'</td><td>'+(r[1]<0?'− ':'')+fmt(Math.abs(r[1]))+'</td></tr>').join('')
+    + '<tr class="total"><td>Revenu net annuel avant impôt</td><td>'+(stNet<0?'− ':'')+fmt(Math.abs(stNet))+'</td></tr>';
+  $('cash').textContent = 'Dont fonds propres à mobiliser : '+fmt(total-loan)+' (apport et frais), crédit bancaire : '+fmt(loan)+'.';
+  const tf = $('taxFlag');
+  if (st==='investment'||st==='nonres'){ tf.className='flag'; tf.textContent='Le barème « logement supplémentaire » (8 % puis 10 %) est une mesure temporaire valable jusqu\'au 31/12/2026. Le simulateur sera mis à jour dès la publication de la règle suivante.'; }
+  else { tf.className=''; tf.textContent=''; }
+}
+document.querySelectorAll('input').forEach(i=>i.addEventListener('input',update));
+$('lead').addEventListener('submit',e=>{
+  e.preventDefault();
+  const ok = $('lname').value.trim() && /\S+@\S+\.\S+/.test($('lemail').value) && $('lconsent').checked;
+  $('leadMsg').textContent = ok
+    ? 'Aperçu : dans la version finale, la simulation et vos coordonnées seront transmises à un conseiller AXIHOME. Rien n\'a été envoyé.'
+    : 'Indiquez votre nom, une adresse e-mail valide et cochez la case de consentement.';
+});
+update();
+loadFromCMS().then(update);
+</script>
+</body>
+</html>
